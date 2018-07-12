@@ -97,7 +97,7 @@ total_sample_numbers=len(os.listdir(file_path+'Catchable'))+len(os.listdir(file_
 # writer.close()
 
 
-#creat_record(file_path,classes,(480,270))
-eval_tfrecords(file_path+'output/',"catch_classification_eval.tfrecords",total_sample_numbers,[270,480,3])
+#creat_record(file_path,classes,(240,135))
+#eval_tfrecords(file_path+'output/',"catch_classification_eval.tfrecords",total_sample_numbers,[270,480,3])
 
 
