@@ -1,8 +1,8 @@
 import tensorflow as tf
 import os
 from PIL import Image
-import numpy as np
-import matplotlib.pyplot as plt
+# import numpy as np
+# import matplotlib.pyplot as plt
 
 def creat_record(file_path,classes,shape):
     # file_path:样本路径
@@ -74,9 +74,9 @@ def eval_tfrecords(output_path,tfrecords_paths,samples_number,shape):
         coord.request_stop()
         coord.join(threads)
 
-file_path='/home/anguo/evaluation/'
-classes={'Uncatchable','Catchable'}  #label中0是不可抓 1为可抓
-total_sample_numbers=len(os.listdir(file_path+'Catchable'))+len(os.listdir(file_path+'Uncatchable'))
+# file_path='/home/anguo/evaluation/'
+# classes={'Uncatchable','Catchable'}  #label中0是不可抓 1为可抓
+# total_sample_numbers=len(os.listdir(file_path+'Catchable'))+len(os.listdir(file_path+'Uncatchable'))
 
 # writer=tf.python_io.TFRecordWriter("catch_classification_train.tfrecords")
 #
@@ -97,7 +97,7 @@ total_sample_numbers=len(os.listdir(file_path+'Catchable'))+len(os.listdir(file_
 # writer.close()
 
 
-#creat_record(file_path,classes,(240,135))
-#eval_tfrecords(file_path+'output/',"catch_classification_eval.tfrecords",total_sample_numbers,[270,480,3])
+#creat_record(file_path,classes,(224,224))
+#eval_tfrecords(file_path+'output/',"catch_classification_eval.tfrecords",total_sample_numbers,[224,224,3])
 
 
