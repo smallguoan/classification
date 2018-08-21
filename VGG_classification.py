@@ -58,7 +58,7 @@ class VGG:
         self.flatten=tf.reshape(pool5_bn,shape=[-1,7*7*512])
         self.fc6 = tf.layers.dense(self.flatten, 4096, activation=None,name='fc6')
         self.fc7=tf.layers.dense(self.fc6,4096,activation=None,name='fc7')
-        self.fc7=tf.nn.dropout(self.fc7,keep_prob=0.6)
+        #self.fc7=tf.nn.dropout(self.fc7,keep_prob=0.3)
         self.fc8=tf.layers.dense(self.fc7,2,activation=None,name='fc8')
         self.out=tf.nn.softmax(self.fc8)
         self.sess=tf.Session()
@@ -68,7 +68,8 @@ class VGG:
             saver.restore(self.sess, restore_from)
         else:  # training graph
             self.loss = tf.reduce_mean(-tf.reduce_sum(self.tfy*tf.log(self.out),reduction_indices=[1]))
-            self.train_op = tf.train.AdamOptimizer(1e-4).minimize(self.loss)
+            self.train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(self.loss)
+            self.train_op_1=tf.train.AdamOptimizer(learning_rate=1e-5).minimize(self.loss)
             self.sess.run(tf.global_variables_initializer())
 
         print('Load Complete!')
@@ -89,19 +90,22 @@ class VGG:
         image, label = Cl.read_and_decode('catch_classification_train.tfrecords', [224, 224, 3])
         label = tf.one_hot(label, 2, dtype=tf.float32)
         img_batch, label_batch = tf.train.shuffle_batch([image, label],
-                                                        batch_size=self.batch_size, capacity=20000,
-                                                        min_after_dequeue=10000, num_threads=1)
+                                                        batch_size=self.batch_size, capacity=5000,
+                                                        min_after_dequeue=1000, num_threads=1)
         image_eval, label_eval = Cl.read_and_decode('catch_classification_eval.tfrecords', [224, 224, 3])
         label_eval = tf.one_hot(label_eval, 2, dtype=tf.float32)
         img_eval_batch, label_eval_batch = tf.train.shuffle_batch([image_eval, label_eval],
-                                                                  batch_size=self.batch_size, capacity=20000,
-                                                                  min_after_dequeue=10000, num_threads=1)
+                                                                  batch_size=self.batch_size, capacity=5000,
+                                                                  min_after_dequeue=1000, num_threads=1)
         threads = tf.train.start_queue_runners(sess=self.sess,coord=coord)
-        for i in range(1500):
+        for i in range(1,2000):
 
             val,l=self.sess.run([img_batch,label_batch])
             #print(l)
-            self.sess.run(self.train_op,feed_dict={self.tfx:val,self.tfy:l})
+            if i>=1000:
+                self.sess.run(self.train_op_1, feed_dict={self.tfx: val, self.tfy: l})
+            else:
+                self.sess.run(self.train_op,feed_dict={self.tfx:val,self.tfy:l})
             print("this is the %d th "%i,"loss=",self.sess.run(self.loss,feed_dict={self.tfx:val,self.tfy:l}))
             if i%100==0:
                 eval,l_eval=self.sess.run([img_eval_batch,label_eval_batch])
@@ -123,7 +127,7 @@ class VGG:
     def eval(self,input):
         input=np.resize(input,[1,224,224,3])
         result=self.sess.run(self.out,feed_dict={self.tfx:input})
-        print(result)
+        #print(result)
         if np.argmax(result,axis=1)==0:
             print("Uncatchable")
         else:
@@ -131,6 +135,14 @@ class VGG:
 if __name__ == '__main__':
     # vgg=VGG()
     # vgg.train()
+    file_path="/media/anguo/Entertainment/Program Files2/BaiduNetdiskDownload/pic(another_set)/"
     vgg=VGG(restore_from='/home/anguo/PycharmProjects/random_catch/pre_classification_vgg.ckpt')
-    input=Image.open('/home/anguo/evaluation/output/772_Label_0.jpg')
-    vgg.eval(input)
+    for img_name in os.listdir(file_path):
+        path=file_path+img_name
+        input=Image.open(path)
+        input=input.resize((224,224))
+        vgg.eval(input)
+
+    # input=Image.open('/media/anguo/Entertainment/Program Files2/BaiduNetdiskDownload/Catchable/20180610_145943.jpg')
+    # input=input.resize((224,224))
+    # vgg.eval(input)
